@@ -26,7 +26,6 @@ function DialogsBot(config) {
     }
 
     bot.send = async (message, cb) => {
-      console.log("MESSAGE TO SEND ", message);
       try {
         await bot.dlg.sendText(message.peer, message.text, message.attachment);
       } catch (err) {
@@ -38,7 +37,6 @@ function DialogsBot(config) {
     }
 
     bot.reply = (src, resp, cb) => {
-      console.log(src);
       const msg = {
         raw_message: {
           peer: src.peer,
@@ -87,7 +85,7 @@ function DialogsBot(config) {
       endpoints: config.endpoints
     });
 
-    const stream = worker.dlg
+    worker.dlg
       .onMessage(async msg => dialog_botkit.ingest(worker, msg))
       .subscribe({
         next() {},
@@ -106,29 +104,17 @@ function DialogsBot(config) {
   //  Transform Dialog message to Botkit
   //
   dialog_botkit.middleware.normalize.use(async function (bot, message, next) {
+    message.text = "";
     message.channel = `${message.peer.id}:${message.peer.type}`;
-    console.log(message);
 
     switch (message.content.type) {
       case 'text': {
         // Get history message object from message ID
         const historyMsgs = await bot.dlg.fetchMessages([message.id]);
-        if (!historyMsgs || !historyMsgs[0]) {
-          console.error(`dialog: Couldn't get full message content`);
-          next();
-          return;
-        }
-
         const historyMsg = historyMsgs[0];
 
         // Get user from user ID
         const dlgUser = await bot.dlg.getUser(historyMsg.senderUserId);
-        if (!dlgUser) {
-          console.error(`dialog: Couldn't find sender of Dialogs message`);
-          next();
-          return;
-        }
-
         message.user = dlgUser.id;
         message.text = message.content.text;
         message.type = 'message_received';
@@ -136,30 +122,7 @@ function DialogsBot(config) {
       }
 
       case 'service': {
-        const ext = message.content.extension;
-        if (ext.userInvited) {
-          // Get user from user ID
-          const dlgUser = await bot.dlg.getUser(historyMsg.senderUserId);
-          if (!dlgUser) {
-            console.error(`dialog: Couldn't find sender of Dialogs message`);
-            next();
-            return;
-          }
-
-          message.user = dlgUser.id;
-          message.type = 'bot_room_join';
-        } else if (ext.userKicked) {
-          // Get user from user ID
-          const dlgUser = await bot.dlg.getUser(historyMsg.senderUserId);
-          if (!dlgUser) {
-            console.error(`dialog: Couldn't find sender of Dialogs message`);
-            next();
-            return;
-          }
-
-          message.user = dlgUser.id;
-          message.type = 'bot_room_leave';
-        }
+        message.service = message.content.extension;
         break;
       }
     }
@@ -178,12 +141,38 @@ function DialogsBot(config) {
       case 'group':
       default:
         // Check if message mentions bot
-        if (message.text.indexOf(`@${bot.self.nick}`) != -1)
-          message.type = 'mention';
-        else
-          message.type = 'ambient';
-        break;
+        switch (message.text.indexOf(`@${bot.self.nick}`)) {
+          case -1: message.type = 'ambient'; break;
+          case  0: message.type = 'direct_mention'; break;
+          default: message.type = 'mention'; break;
+        }
     }
+
+    if (message.service) {
+      const ext = message.service;
+      if (ext.userInvited) {
+        const uid = ext.userInvited.invitedUid;
+        if (uid == bot.self.id) {
+          message.type = 'bot_group_join';
+          bot.botkit.debug(`Bot joined the group`);
+        } else {
+          message.type = 'user_group_join';
+          bot.botkit.debug(`User #${uid} joined the group`);
+          message.user = uid;
+        }
+      } else if (ext.userKicked) {
+        const uid = ext.userKicked.kickedUid;
+        if (uid == bot.self.id) {
+          message.type = 'bot_group_leave';
+          bot.botkit.debug(`Bot left the group`);
+        } else {
+          message.type = 'user_group_leave';
+          bot.botkit.debug(`User #${uid} left the group`);
+          message.user = uid;
+        }
+      }
+    }
+
     next();
   });
 

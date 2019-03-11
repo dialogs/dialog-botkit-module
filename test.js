@@ -8,39 +8,54 @@ const controller = dlg({
 
 const bot = controller.spawn({});
 
+controller.hears('more', 'direct_message', function (bot, message) {
+  bot.startConversation(message, function(err, convo) {
+    convo.ask('You want to know more about Botkit ?', [
+      {
+        pattern: bot.utterances.yes,
+        callback: function(response, convo) {
+          convo.say('Take a look here https://botkit.ai/docs/');
+          convo.next();
+        }
+      },
+      {
+        pattern: bot.utterances.no,
+        default: true,
+        callback: function(response, convo) {
+          convo.say('No problem');
+          convo.next();
+        }
+      }
+    ]);
+  });
+});
+
 controller.hears(/.*/, 'direct_message', (bot, message) => {
   bot.reply(message, 'You sent me a direct message');
 });
 
 controller.hears(/.*/, 'ambient', (bot, message) => {
-  bot.reply(message, 'I saw a message in this group');
+  const sentence = 'I saw a message in this group';
+  if (message.text != sentence)
+    bot.reply(message, sentence);
 });
 
 controller.hears(/.*/, 'mention', (bot, message) => {
   bot.reply(message, 'Someone mentioned me in this group');
-})
+});
 
-controller.hears('convo', 'direct_message', function (bot, message) {
+controller.hears(/.*/, 'direct_mention', (bot, message) => {
+  bot.reply(message, 'Someone directly mentioned me in this group');
+});
 
-  bot.startConversation(message, function(err, convo) {
+controller.on('bot_group_join', (bot, message) => {
+  bot.reply(message, 'Hi, new group!');
+});
 
-      convo.ask('You want to know more about Botkit ?', [
-          {
-              pattern: bot.utterances.yes,
-              callback: function(response, convo) {
-                  convo.say('Take a look here https://botkit.ai/docs/');
-                  convo.next();
-              }
-          },
-          {
-              pattern: bot.utterances.no,
-              default: true,
-              callback: function(response, convo) {
-                  convo.say('No problem');
-                  convo.next();
-              }
-          }
-      ]);
-  });
+controller.on('user_group_join', (bot, message) => {
+  bot.reply(message, 'A user joined the group');
+});
 
+controller.on('user_group_leave', (bot, message) => {
+  bot.reply(message, 'A user left the group');
 });
