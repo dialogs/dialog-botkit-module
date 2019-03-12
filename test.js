@@ -31,7 +31,16 @@ controller.hears('more', ['direct_mention', 'direct_message'], (bot, message) =>
 });
 
 controller.hears('file', ['direct_mention', 'direct_message'], (bot, message) => {
-  bot.reply(message, { file: '/etc/services' });
+  bot.reply(message, { file: {
+    path: '/etc/services'
+  }});
+});
+
+controller.hears('image', ['direct_mention', 'direct_message'], (bot, message) => {
+  bot.reply(message, { file: {
+    path: process.env.HOME + '/Downloads/242.png',
+    image: true
+  }});
 });
 
 controller.hears(/.*/, 'direct_message', (bot, message) => {

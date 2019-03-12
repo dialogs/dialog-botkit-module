@@ -28,12 +28,17 @@ function DialogsBot(config) {
     bot._send = async (message) => {
       if (message.text) {
         await bot.dlg.sendText(message.peer, message.text, message.attachment);
-        botkit.debug('dialog: Sent message: ' + message.text);
+        console.log('dialog: Sent message: ' + message.text);
       }
 
       if (message.file) {
-        await bot.dlg.sendDocument(message.peer, message.file);
-        botkit.debug('dialog: Sent file: ' + message.file);
+        if (message.file.image) {
+          await bot.dlg.sendImage(message.peer, message.file.path, message.attachment);
+          console.log('dialog: Sent image: ' + message.file.path);
+        } else {
+          await bot.dlg.sendDocument(message.peer, message.file.path, message.attachment);
+          console.log('dialog: Sent file: ' + message.file.path);
+        }
       }
     };
 
