@@ -23,18 +23,30 @@ function DialogsBot(config) {
       botkit: botkit,
       config: config || {},
       utterances: botkit.utterances,
-    }
+    };
+
+    bot._send = async (message) => {
+      if (message.text) {
+        await bot.dlg.sendText(message.peer, message.text, message.attachment);
+        botkit.debug('dialog: Sent message: ' + message.text);
+      }
+
+      if (message.file) {
+        await bot.dlg.sendDocument(message.peer, message.file);
+        botkit.debug('dialog: Sent file: ' + message.file);
+      }
+    };
 
     bot.send = async (message, cb) => {
+      //console.log(message);
       try {
-        await bot.dlg.sendText(message.peer, message.text, message.attachment);
+        await bot._send(message);
+        if (cb) cb(null, message.text || "[interactive content]");
       } catch (err) {
         console.error('Error while sending message to Dialogs', err);
         if (cb) cb(err);
       }
-      botkit.debug('Sent: ' + message.text);
-      if (cb) cb(null, message.text);
-    }
+    };
 
     bot.reply = (src, resp, cb) => {
       const msg = {
@@ -45,11 +57,8 @@ function DialogsBot(config) {
 
       if (typeof (resp) == 'string')
         msg.text = resp;
-      else if (resp.text)
-        msg.text = resp.text;
       else
-        msg.text = "";
-
+        Object.assign(msg, resp);
       bot.say(msg, cb);
     };
 
@@ -104,6 +113,7 @@ function DialogsBot(config) {
   //  Transform Dialog message to Botkit
   //
   dialog_botkit.middleware.normalize.use(async function (bot, message, next) {
+    //console.log(message);
     message.text = "";
     message.channel = `${message.peer.id}:${message.peer.type}`;
 
@@ -123,6 +133,18 @@ function DialogsBot(config) {
 
       case 'service': {
         message.service = message.content.extension;
+        break;
+      }
+
+      case 'document': {
+        // Get history message object from message ID
+        const historyMsgs = await bot.dlg.fetchMessages([message.id]);
+        const historyMsg = historyMsgs[0];
+
+        // Get user from user ID
+        const dlgUser = await bot.dlg.getUser(historyMsg.senderUserId);
+        message.user = dlgUser.id;
+        message.document = message.content;
         break;
       }
     }
@@ -171,6 +193,8 @@ function DialogsBot(config) {
           message.user = uid;
         }
       }
+    } else if (message.document) {
+      message.type = 'file_share';
     }
 
     next();
@@ -181,7 +205,9 @@ function DialogsBot(config) {
   //
   dialog_botkit.middleware.format.use(function(bot, message, dlgMessage, next) {
     console.log(`dialog: Incoming message`);
+
     dlgMessage.text = message.text;
+    dlgMessage.file = message.file;
     if (message.raw_message) {
       dlgMessage.peer = message.raw_message.peer;
     } else {

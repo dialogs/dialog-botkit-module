@@ -8,7 +8,7 @@ const controller = dlg({
 
 const bot = controller.spawn({});
 
-controller.hears('more', 'direct_message', function (bot, message) {
+controller.hears('more', ['direct_mention', 'direct_message'], (bot, message) => {
   bot.startConversation(message, function(err, convo) {
     convo.ask('You want to know more about Botkit ?', [
       {
@@ -28,6 +28,10 @@ controller.hears('more', 'direct_message', function (bot, message) {
       }
     ]);
   });
+});
+
+controller.hears('file', ['direct_mention', 'direct_message'], (bot, message) => {
+  bot.reply(message, { file: '/etc/services' });
 });
 
 controller.hears(/.*/, 'direct_message', (bot, message) => {
@@ -58,4 +62,8 @@ controller.on('user_group_join', (bot, message) => {
 
 controller.on('user_group_leave', (bot, message) => {
   bot.reply(message, 'A user left the group');
+});
+
+controller.on('file_share', (bot, message) => {
+  bot.reply(message, 'Someone sent a file');
 });
