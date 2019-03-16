@@ -150,10 +150,12 @@ function DialogsBot(config) {
     [message] = await bot.dlg.fetchMessages([action.mid]);
     if (!message)
       return;
-    if (!message.peer)
-      return;
 
-    action.peer = message.peer.peer;
+    if (!message.peer)
+      action.peer = Dialog.Peer.private(action.uid);
+    else
+      action.peer = message.peer.peer;
+
     action.text = action.id;
     action.user = action.uid;
     action.channel = `${action.peer.id}:${action.peer.type}`;
