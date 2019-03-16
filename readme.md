@@ -121,3 +121,23 @@ bot.reply(message, {
     })
 });
 ```
+
+## Testing Bot
+
+This repo contains a test Botkit bot that demonstrates the features of the Dialogs platform.
+
+#### Installation
+
+```shell
+git clone https://github.com/dialogs/dialog-botkit-module
+cd dialog-botkit-module
+npm install
+export DIALOGS_TOKEN=xxx
+./test.js
+The testing bot will demonstrate all the features implemented in this PR.
+Sent @<username> help to start.
+```
+
+#### Usage
+
+Mention the bot like this: `@bot help` to get started with the features.
