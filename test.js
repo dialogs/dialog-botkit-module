@@ -54,21 +54,21 @@ controller.hears('image', ['direct_mention', 'direct_message'], (bot, message) =
   }});
 });
 
-controller.hears(/.*/, 'direct_message', (bot, message) => {
+controller.on('direct_message', (bot, message) => {
   bot.reply(message, 'You sent me a direct message');
 });
 
-controller.hears(/.*/, 'ambient', (bot, message) => {
+controller.on('ambient', (bot, message) => {
   const sentence = 'I saw a message in this group';
   if (message.text != sentence)
     bot.reply(message, sentence);
 });
 
-controller.hears(/.*/, 'mention', (bot, message) => {
+controller.on('mention', (bot, message) => {
   bot.reply(message, 'Someone mentioned me in this group');
 });
 
-controller.hears(/.*/, 'direct_mention', (bot, message) => {
+controller.on('direct_mention', (bot, message) => {
   bot.reply(message, 'Someone directly mentioned me in this group');
 });
 
@@ -164,3 +164,26 @@ controller.hears('actions', ['direct_mention', 'direct_message'], (bot, message)
     ]);
   });
 });
+
+/*controller.hears('update', ['direct_mention', 'direct_message'], (bot, message) => {
+  let i = 0;
+  const query = {
+    text: 'Update',
+    actions: ActionGroup.create({
+      actions: [
+        Action.create({
+          id: 'add_' + (Math.random() * 999),
+          widget: Button.create({ label: 'Clicks: ' + i })
+        })
+      ]
+    })
+  };
+  bot.reply(message, query, () => {
+    controller.on('action_event', (bot, message) => {
+      i++;
+      query.actions.actions[0].widget.label = 'Clicks: ' + i;
+      query.id = mid;
+      bot.update(query, query);
+    });
+  });
+});*/

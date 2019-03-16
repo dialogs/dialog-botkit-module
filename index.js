@@ -82,7 +82,7 @@ function DialogsBot(config) {
       if (actions && !Array.isArray(actions))
         actions = [actions];
 
-      const content = Dialog.TextContent.create(text || '', actions);
+      const content = Dialog.TextContent.create(update.text || src.text || '', actions);
       await bot.dlg.rpc.editMessage(src.id, content);
       cb();
     };
