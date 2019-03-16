@@ -9,7 +9,27 @@ const controller = dlg({
 
 const bot = controller.spawn({});
 
-controller.hears('more', ['direct_mention', 'direct_message'], (bot, message) => {
+constroller.hears('help', ['direct_mention', 'direct_message'], (bot, message) => {
+  bot.reply(message,
+    "Mention/DM commands:\n" +
+    " - convo: Conversation\n" +
+    " - actions: Interactive conversation\n" +
+    " - file: Send a file\n" +
+    " - image: Send an image\n" +
+    " - help: Print this help\n" +
+    "Recognized meta events:\n" +
+    " - bot_group_join: This bot joined a group\n" +
+    " - user_group_join: User joined a group\n" +
+    " - user_group_leave: User left a group\n" +
+    "Recognized message events\n" +
+    " - file_share: Received file or media\n" +
+    " - direct_message: Message in DMs\n" +
+    " - ambient: Message in group, bot not mentioned\n" +
+    " - mention: Message in group, bot mentioned\n" +
+    " - direct_mention: Message in group, bot mention at beginning of message\n");
+});
+
+controller.hears('convo', ['direct_mention', 'direct_message'], (bot, message) => {
   bot.startConversation(message, function(err, convo) {
     convo.ask('You want to know more about Botkit ?', [
       {
