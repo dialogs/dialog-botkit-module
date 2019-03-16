@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const dlg = require('./index.js');
 const { ActionGroup, Action, Button } = require('@dlghq/dialog-bot-sdk');
 
