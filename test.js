@@ -32,7 +32,8 @@ controller.hears('more', ['direct_mention', 'direct_message'], (bot, message) =>
 });
 
 controller.hears('actions', ['direct_mention', 'direct_message'], (bot, message) => {
-  bot.reply(message, {
+  // Build response question form with three buttons
+  const response = {
     actions: ActionGroup.create({
       title: 'Continue?',
       description: 'Switch to Dialogs, the handy and feature-rich enterprise multi-device messenger?',
@@ -54,6 +55,34 @@ controller.hears('actions', ['direct_mention', 'direct_message'], (bot, message)
         })
       ]
     })
+  };
+
+  // Start conversation with response and listed for responses
+  bot.startConversation(message, function(err, convo) {
+    convo.ask(response, [
+      {
+        pattern: /^continue_yes$/,
+        callback: (response, convo) => {
+          convo.say("That's great! Visit https://dlg.im/en to get a plan.");
+          convo.next();
+        }
+      },
+      {
+        pattern: /^continue_no$/,
+        callback: (response, convo) => {
+          convo.say('No problem');
+          convo.next();
+        }
+      },
+      {
+        pattern: /^continue_unsure$/,
+        callback: (response, convo) => {
+          convo.say('Check out our features https://dlg.im/en/features');
+          convo.next();
+        }
+      }
+    ]);
+  });
 });
 
 controller.hears('file', ['direct_mention', 'direct_message'], (bot, message) => {
