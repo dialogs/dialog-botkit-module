@@ -78,7 +78,7 @@ bot.reply(message, {
 
 #### Images
 
-Same as regular files, but set `isImage`:
+Same as regular files, but set `image`:
 
 ```js
 bot.reply(message, {
@@ -87,4 +87,37 @@ bot.reply(message, {
         image: true
     }
 })
+```
+
+## Interactive Content
+
+TODO More detailed explanation
+
+Send a message with an `actions` object.
+`actions` is one [ActionGroup](https://dialogs.github.io/js-bot-sdk/classes/actiongroup.html) or multiple in an array.
+
+```js
+bot.reply(message, {
+    actions: ActionGroup.create({
+        title: 'Continue?',
+        description: 'Switch to Dialogs, the handy and feature-rich enterprise multi-device messenger?',
+        actions: [
+            Actions.create({
+                id: 'continue_yes',
+                style: ActionStyle.PRIMARY,
+                widget: Button.create({ label: 'Yes!' })
+            }),
+            Actions.create({
+                id: 'continue_no',
+                style: ActionStyle.DANGER,
+                widget: Button.create({ label: 'No :(' })
+            }),
+            Actions.create({
+                id: 'continue_unsure',
+                style: ActionStyle.DEFAULT,
+                widget: Button.create({ label: 'Maybe later.' })
+            })
+        ]
+    })
+});
 ```

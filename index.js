@@ -26,8 +26,8 @@ function DialogsBot(config) {
     };
 
     bot._send = async (message) => {
-      if (message.text) {
-        await bot.dlg.sendText(message.peer, message.text, message.attachment);
+      if (message.text || message.actionOrActions) {
+        await bot.dlg.sendText(message.peer, (message.text || ''), message.attachment, message.actionOrActions);
         console.log('dialog: Sent message: ' + message.text);
       }
 
@@ -43,10 +43,10 @@ function DialogsBot(config) {
     };
 
     bot.send = async (message, cb) => {
-      //console.log(message);
+      console.log(message);
       try {
         await bot._send(message);
-        if (cb) cb(null, message.text || "[interactive content]");
+        if (cb) cb(null, message.text || "[non-text content]");
       } catch (err) {
         console.error('Error while sending message to Dialogs', err);
         if (cb) cb(err);
@@ -213,12 +213,18 @@ function DialogsBot(config) {
 
     dlgMessage.text = message.text;
     dlgMessage.file = message.file;
+
     if (message.raw_message) {
       dlgMessage.peer = message.raw_message.peer;
     } else {
       const peerElements = message.channel.split(":", 2);
       dlgMessage.peer = new Peer(peerElements[0], peerElements[1]);
     }
+
+    if (message.actions) {
+      dlgMessage.raw_message.actionOrActions = message.actions;
+    }
+
     next();
   });
 

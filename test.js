@@ -1,4 +1,5 @@
 const dlg = require('./index.js');
+const { ActionGroup, Action, Button } = require('@dlghq/dialog-bot-sdk');
 
 const controller = dlg({
   debug: true,
@@ -28,6 +29,31 @@ controller.hears('more', ['direct_mention', 'direct_message'], (bot, message) =>
       }
     ]);
   });
+});
+
+controller.hears('actions', ['direct_mention', 'direct_message'], (bot, message) => {
+  bot.reply(message, {
+    actions: ActionGroup.create({
+      title: 'Continue?',
+      description: 'Switch to Dialogs, the handy and feature-rich enterprise multi-device messenger?',
+      actions: [
+        Actions.create({
+          id: 'continue_yes',
+          style: ActionStyle.PRIMARY,
+          widget: Button.create({ label: 'Yes!' })
+        }),
+        Actions.create({
+          id: 'continue_no',
+          style: ActionStyle.DANGER,
+          widget: Button.create({ label: 'No :(' })
+        }),
+        Actions.create({
+          id: 'continue_unsure',
+          style: ActionStyle.DEFAULT,
+          widget: Button.create({ label: 'Maybe later.' })
+        })
+      ]
+    })
 });
 
 controller.hears('file', ['direct_mention', 'direct_message'], (bot, message) => {
