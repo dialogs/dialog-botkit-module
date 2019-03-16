@@ -46,6 +46,7 @@ In fact, Botkit will receive, normalize and emit any event that it receives from
 | direct_mention | the bot was addressed directly in a channel
 | mention | the bot was mentioned by someone in a message
 | ambient | the message received had no mention of the bot
+| action_event | the user has responded to an action group
 
 ### User Activity Events:
 | Event | Description
@@ -93,8 +94,14 @@ bot.reply(message, {
 
 TODO More detailed explanation
 
+### Sending ActionGroups
+
 Send a message with an `actions` object.
-`actions` is one [ActionGroup](https://dialogs.github.io/js-bot-sdk/classes/actiongroup.html) or multiple in an array.
+`actions` is one or multiple [ActionGroups](https://dialogs.github.io/js-bot-sdk/classes/actiongroup.html).
+
+Each `ActionGroup` contains multiple [Actions](https://dialogs.github.io/js-bot-sdk/classes/action.html)
+that can be either Buttons or Selects at the time of writing.
+An Action has a unique `id` that will be used to match user responses.
 
 ```js
 bot.reply(message, {
@@ -121,6 +128,45 @@ bot.reply(message, {
     })
 });
 ```
+
+### Receiving responses
+
+When a user clicks an Action sent by the bot,
+the bot receives an `action_event` type message.
+The content of the message is the action `id`.
+
+The easiest way to handle interactive action clicks are [Botkit conversations](https://botkit.ai/docs/core.html#multi-message-conversations).
+Let's take the action group above and re-use it in conversation logic:
+
+```js
+// Action message from above
+const response = { actions: ActionGroup.create({ /*...*/ }) };
+
+bot.startConversation(message, function(err, convo) {
+    convo.ask(response, [
+        {
+            pattern: /^continue_yes$/, // Match the full message ID
+            callback: (response, convo) => {
+                convo.say("That's great! Visit https://dlg.im/en to get a plan.");
+                convo.next();
+            }
+        },
+        {
+            pattern: /^continue_no$/,
+            callback: (response, convo) => {
+                convo.say('No problem');
+                convo.next();
+            }
+        }
+    ]);
+});
+```
+
+Of course, you can have nested `convo.ask` calls for arbitrarily complex conversation chains.
+
+### Updating user content
+
+TODO
 
 ## Testing Bot
 
