@@ -97,7 +97,7 @@ TODO More detailed explanation
 ### Sending ActionGroups
 
 Send a message with an `actions` object.
-`actions` is one or multiple [ActionGroups](https://dialogs.github.io/js-bot-sdk/classes/actiongroup.html).
+The top level `actions` is an [ActionGroup](https://dialogs.github.io/js-bot-sdk/classes/actiongroup.html).
 
 Each `ActionGroup` contains multiple [Actions](https://dialogs.github.io/js-bot-sdk/classes/action.html)
 that can be either Buttons or Selects at the time of writing.

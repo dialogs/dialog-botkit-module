@@ -25,22 +25,22 @@ function DialogsBot(config) {
     };
 
     bot._send = async (message) => {
-      if (message.raw_message.actionOrActions) {
-        await bot.dlg.sendText(message.peer, (message.text || ''), message.attachment, message.raw_message.actionOrActions);
-        console.log('dialog: Sent actions message: ' + message.text);
-      } else if (message.text) {
-        await bot.dlg.sendText(message.peer, message.text, message.attachment);
-        console.log('dialog: Sent message: ' + message.text);
-      }
-
       if (message.file) {
         if (message.file.image) {
-          await bot.dlg.sendImage(message.peer, message.file.path, message.attachment);
+          message.id = await bot.dlg.sendImage(message.peer, message.file.path, message.attachment);
           console.log('dialog: Sent image: ' + message.file.path);
         } else {
-          await bot.dlg.sendDocument(message.peer, message.file.path, message.attachment);
+          message.id = await bot.dlg.sendDocument(message.peer, message.file.path, message.attachment);
           console.log('dialog: Sent file: ' + message.file.path);
         }
+      }
+
+      if (message.raw_message.actionOrActions) {
+        message.id = await bot.dlg.sendText(message.peer, (message.text || ''), message.attachment, message.raw_message.actionOrActions);
+        console.log('dialog: Sent actions message: ' + message.text);
+      } else if (message.text) {
+        message.id = await bot.dlg.sendText(message.peer, message.text, message.attachment);
+        console.log('dialog: Sent message: ' + message.text);
       }
     };
 
@@ -66,6 +66,25 @@ function DialogsBot(config) {
       else
         Object.assign(msg, resp);
       bot.say(msg, cb);
+    };
+
+    bot.update = async (src, update, cb) => {
+      if (typeof update === 'string')
+        update = { text: update };
+
+      let actions;
+
+      if (update.actions)
+        actions = update.actions;
+      else
+        actions = src.actions;
+      
+      if (actions && !Array.isArray(actions))
+        actions = [actions];
+
+      const content = Dialog.TextContent.create(text || '', actions);
+      await bot.dlg.rpc.editMessage(src.id, content);
+      cb();
     };
 
     bot.findConversation = function(message, cb) {
@@ -261,7 +280,16 @@ function DialogsBot(config) {
   //  Transform Botkit message to Dialogs
   //
   dialog_botkit.middleware.format.use(function(bot, message, dlgMessage, next) {
-    console.log(`dialog: Incoming message`);
+    dialog_botkit.format_message(message, dlgMessage);
+    next();
+  });
+
+  dialog_botkit.format_message = function(message, dlgMessage) {
+    console.log(`dialog: Formatting message`);
+
+    
+
+
 
     dlgMessage.raw_message = dlgMessage.raw_message || {};
     dlgMessage.text = message.text;
@@ -277,9 +305,7 @@ function DialogsBot(config) {
     if (message.actions) {
       dlgMessage.raw_message.actionOrActions = message.actions;
     }
-
-    next();
-  });
+  };
 
   dialog_botkit.startTicking();
 
