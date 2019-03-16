@@ -45,7 +45,6 @@ function DialogsBot(config) {
     };
 
     bot.send = async (message, cb) => {
-      console.log(message);
       try {
         await bot._send(message);
         if (cb) cb(null, message.text || "[non-text content]");
@@ -112,6 +111,16 @@ function DialogsBot(config) {
         next() {},
         error(msg) { console.error('Error processing message: ', msg); }
       });
+
+    worker.dlg
+      .onAction(async msg => {
+        msg.is_action = true;
+        dialog_botkit.ingest(worker, msg);
+      })
+      .subscribe({
+        next() {},
+        error(msg) { console.error('Error processing action: ', msg); }
+      });
   
     console.log(`dialog: Connected to ${config.endpoints[0]}`);
 
@@ -124,8 +133,36 @@ function DialogsBot(config) {
   //
   //  Transform Dialog message to Botkit
   //
-  dialog_botkit.middleware.normalize.use(async function (bot, message, next) {
-    //console.log(message);
+  dialog_botkit.middleware.normalize.use(function (bot, message, next) {
+    if (message.is_action) {
+      dialog_botkit.ingest_action(bot, message, next);
+    } else {
+      dialog_botkit.ingest_message(bot, message, next);
+    }
+  });
+
+  dialog_botkit.ingest_action = async function (bot, action, next) {
+    // Can't handle action without message (peer required)
+    if (!action.mid)
+      return;
+
+    let message;
+    [message] = await bot.dlg.fetchMessages([action.mid]);
+    if (!message)
+      return;
+    if (!message.peer)
+      return;
+
+    action.peer = message.peer.peer;
+    action.text = action.id;
+    action.user = action.uid;
+    action.channel = `${action.peer.id}:${action.peer.type}`;
+    action.type = "action_event";
+    action.content = { type: 'action' };
+    next();
+  }
+
+  dialog_botkit.ingest_message = async function (bot, message, next) {
     message.text = "";
     message.channel = `${message.peer.id}:${message.peer.type}`;
 
@@ -162,12 +199,20 @@ function DialogsBot(config) {
     }
 
     next();
-  });
+  };
 
   //
   //  Add additional info
   //
   dialog_botkit.middleware.categorize.use(function(bot, message, next) {
+    if (message.type != 'action_event') {
+      dialog_botkit.categorize_message(bot, message);
+    }
+    console.log(message);
+    next();
+  });
+
+  dialog_botkit.categorize_message = function(bot, message) {  
     switch (message.peer.type) {
       case 'private':
         message.type = 'direct_message';
@@ -208,9 +253,7 @@ function DialogsBot(config) {
     } else if (message.document) {
       message.type = 'file_share';
     }
-
-    next();
-  });
+  };
 
   //
   //  Transform Botkit message to Dialogs
