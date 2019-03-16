@@ -24,8 +24,9 @@
   },
   "homepage": "https://github.com/dialogs/dialog-botkit-module#readme",
   "dependencies": {
-    "@dlghq/dialog-bot-sdk": "^3.4.3",
+    "@dlghq/dialog-bot-sdk": "3.4.3",
     "botkit": "^0.7.4",
-    "long": "^4.0.0"
+    "long": "^4.0.0",
+    "rxjs": "^6.4.0"
   }
 }

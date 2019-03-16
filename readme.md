@@ -4,7 +4,7 @@ TODO Table of Contents
 
 ## Getting Started
 
-TODO
+Warning: Node 10+ required.
 
 #### dlg()
 | Argument | Description
@@ -109,17 +109,17 @@ bot.reply(message, {
         title: 'Continue?',
         description: 'Switch to Dialogs, the handy and feature-rich enterprise multi-device messenger?',
         actions: [
-            Actions.create({
+            Action.create({
                 id: 'continue_yes',
                 style: ActionStyle.PRIMARY,
                 widget: Button.create({ label: 'Yes!' })
             }),
-            Actions.create({
+            Action.create({
                 id: 'continue_no',
                 style: ActionStyle.DANGER,
                 widget: Button.create({ label: 'No :(' })
             }),
-            Actions.create({
+            Action.create({
                 id: 'continue_unsure',
                 style: ActionStyle.DEFAULT,
                 widget: Button.create({ label: 'Maybe later.' })
@@ -178,6 +178,7 @@ This repo contains a test Botkit bot that demonstrates the features of the Dialo
 git clone https://github.com/dialogs/dialog-botkit-module
 cd dialog-botkit-module
 npm install
+export DIALOGS_ENDPOINT=https://grpc-test.transmit.im:9443
 export DIALOGS_TOKEN=xxx
 ./test.js
 The testing bot will demonstrate all the features implemented in this PR.

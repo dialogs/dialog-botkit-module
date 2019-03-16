@@ -1,7 +1,17 @@
 #!/usr/bin/env node
 
 const dlg = require('./index.js');
-const { ActionGroup, Action, Button } = require('@dlghq/dialog-bot-sdk');
+const {
+  Action,
+  ActionGroup,
+  ActionStyle,
+  Button
+} = require('@dlghq/dialog-bot-sdk');
+
+if (!process.env.DIALOGS_TOKEN)
+  throw "$DIALOGS_TOKEN not set";
+if (!process.env.DIALOGS_ENDPOINT)
+  throw "$DIALOGS_ENDPOINT not set";
 
 const controller = dlg({
   debug: true,
@@ -11,7 +21,7 @@ const controller = dlg({
 
 const bot = controller.spawn({});
 
-constroller.hears('help', ['direct_mention', 'direct_message'], (bot, message) => {
+controller.hears('help', ['direct_mention', 'direct_message'], (bot, message) => {
   bot.reply(message,
     "Mention/DM commands:\n" +
     " - convo: Conversation\n" +
@@ -56,21 +66,22 @@ controller.hears('convo', ['direct_mention', 'direct_message'], (bot, message) =
 controller.hears('actions', ['direct_mention', 'direct_message'], (bot, message) => {
   // Build response question form with three buttons
   const response = {
+    text: 'Switch?',
     actions: ActionGroup.create({
       title: 'Continue?',
       description: 'Switch to Dialogs, the handy and feature-rich enterprise multi-device messenger?',
       actions: [
-        Actions.create({
+        Action.create({
           id: 'continue_yes',
           style: ActionStyle.PRIMARY,
           widget: Button.create({ label: 'Yes!' })
         }),
-        Actions.create({
+        Action.create({
           id: 'continue_no',
           style: ActionStyle.DANGER,
           widget: Button.create({ label: 'No :(' })
         }),
-        Actions.create({
+        Action.create({
           id: 'continue_unsure',
           style: ActionStyle.DEFAULT,
           widget: Button.create({ label: 'Maybe later.' })

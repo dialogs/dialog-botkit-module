@@ -1,8 +1,7 @@
 const Botkit = require('botkit/lib/CoreBot');
-const DlgBot = require('@dlghq/dialog-bot-sdk/lib/Bot').default;
-const {
-  Peer,
-} = require('@dlghq/dialog-bot-sdk');
+const Dialog = require('@dlghq/dialog-bot-sdk');
+//const { flatMap } = require('rxjs/operators');
+Dialog.Bot = Dialog.default;
 
 function DialogsBot(config) {
   const dialog_botkit = Botkit(config || {});
@@ -26,8 +25,11 @@ function DialogsBot(config) {
     };
 
     bot._send = async (message) => {
-      if (message.text || message.actionOrActions) {
-        await bot.dlg.sendText(message.peer, (message.text || ''), message.attachment, message.actionOrActions);
+      if (message.raw_message.actionOrActions) {
+        await bot.dlg.sendText(message.peer, (message.text || ''), message.attachment, message.raw_message.actionOrActions);
+        console.log('dialog: Sent actions message: ' + message.text);
+      } else if (message.text) {
+        await bot.dlg.sendText(message.peer, message.text, message.attachment);
         console.log('dialog: Sent message: ' + message.text);
       }
 
@@ -94,10 +96,15 @@ function DialogsBot(config) {
   //  Create new Dialog worker
   //
   dialog_botkit.middleware.spawn.use(async function(worker, next) {
-    worker.dlg = new DlgBot({
+    worker.dlg = new Dialog.Bot({
       token: config.token,
       endpoints: config.endpoints
     });
+
+    // For later: @dlghq/dialog-bot-sdk 4.0.0 API
+    //worker.dlg
+    //  .subscribeToMessages()
+    //  .pipe(flatMap(async msg => dialog_botkit.ingest(worker, msg)));
 
     worker.dlg
       .onMessage(async msg => dialog_botkit.ingest(worker, msg))
@@ -211,6 +218,7 @@ function DialogsBot(config) {
   dialog_botkit.middleware.format.use(function(bot, message, dlgMessage, next) {
     console.log(`dialog: Incoming message`);
 
+    dlgMessage.raw_message = dlgMessage.raw_message || {};
     dlgMessage.text = message.text;
     dlgMessage.file = message.file;
 
@@ -218,7 +226,7 @@ function DialogsBot(config) {
       dlgMessage.peer = message.raw_message.peer;
     } else {
       const peerElements = message.channel.split(":", 2);
-      dlgMessage.peer = new Peer(peerElements[0], peerElements[1]);
+      dlgMessage.peer = new Dialog.Peer(peerElements[0], peerElements[1]);
     }
 
     if (message.actions) {
