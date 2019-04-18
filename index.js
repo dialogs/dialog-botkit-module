@@ -87,6 +87,22 @@ function DialogsBot(config) {
       cb();
     };
 
+    bot.get_users = async (channel, cb) => {
+      const peerElements = message.channel.split(":", 2);
+      const peer = new Dialog.Peer(peerElements[0], peerElements[1]);
+      switch (peer.type) {
+        case Dialog.PeerType.PRIVATE:
+          break;
+        case Dialog.PeerType.GROUP:
+          const group = await bot.getGroup(peer.id);
+
+          break;
+        default:
+          cb(null, []);
+          break;
+      }
+    };
+
     bot.findConversation = function(message, cb) {
       botkit.debug('CUSTOM FIND CONVO', message.user, message.channel);
       for (var t = 0; t < botkit.tasks.length; t++) {
