@@ -1,0 +1,32 @@
+{
+  "name": "@dlghq/botkit-module",
+  "version": "1.0.0",
+  "description": "botkit.ai connector for dialogs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dialogs/dialog-botkit-module.git"
+  },
+  "keywords": [
+    "dialog",
+    "dialogs",
+    "botkit",
+    "bot",
+    "chat"
+  ],
+  "author": "Richard Patel <richxpatel@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/dialogs/dialog-botkit-module/issues"
+  },
+  "homepage": "https://github.com/dialogs/dialog-botkit-module#readme",
+  "dependencies": {
+    "@dlghq/dialog-bot-sdk": "3.4.3",
+    "botkit": "^0.7.4",
+    "long": "^4.0.0",
+    "rxjs": "^6.4.0"
+  }
+}
